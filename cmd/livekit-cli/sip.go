@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/livekit/protocol/livekit"
@@ -127,7 +127,7 @@ var (
 	sipClient *lksdk.SIPClient
 )
 
-func createSIPClient(c *cli.Context) error {
+func createSIPClient(ctx context.Context, c *cli.Command) error {
 	pc, err := loadProjectDetails(c)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func createSIPClient(c *cli.Context) error {
 	return nil
 }
 
-func createSIPTrunk(c *cli.Context) error {
+func createSIPTrunk(ctx context.Context, c *cli.Command) error {
 	reqFile := c.String("request")
 	reqBytes, err := os.ReadFile(reqFile)
 	if err != nil {
@@ -174,7 +174,7 @@ func userPass(user string, hasPass bool) string {
 	return user + " / " + passStr
 }
 
-func listSipTrunk(c *cli.Context) error {
+func listSipTrunk(ctx context.Context, c *cli.Command) error {
 	res, err := sipClient.ListSIPTrunk(context.Background(), &livekit.ListSIPTrunkRequest{})
 	if err != nil {
 		return err
@@ -213,7 +213,7 @@ func listSipTrunk(c *cli.Context) error {
 	return nil
 }
 
-func deleteSIPTrunk(c *cli.Context) error {
+func deleteSIPTrunk(ctx context.Context, c *cli.Command) error {
 	info, err := sipClient.DeleteSIPTrunk(context.Background(), &livekit.DeleteSIPTrunkRequest{
 		SipTrunkId: c.String("id"),
 	})
@@ -229,7 +229,7 @@ func printSIPTrunkInfo(info *livekit.SIPTrunkInfo) {
 	fmt.Printf("SIPTrunkID: %v\n", info.SipTrunkId)
 }
 
-func createSIPDispatchRule(c *cli.Context) error {
+func createSIPDispatchRule(ctx context.Context, c *cli.Command) error {
 	reqFile := c.String("request")
 	reqBytes, err := os.ReadFile(reqFile)
 	if err != nil {
@@ -255,7 +255,7 @@ func createSIPDispatchRule(c *cli.Context) error {
 	return nil
 }
 
-func listSipDispatchRule(c *cli.Context) error {
+func listSipDispatchRule(ctx context.Context, c *cli.Command) error {
 	res, err := sipClient.ListSIPDispatchRule(context.Background(), &livekit.ListSIPDispatchRuleRequest{})
 	if err != nil {
 		return err
@@ -293,7 +293,7 @@ func listSipDispatchRule(c *cli.Context) error {
 	return nil
 }
 
-func deleteSIPDispatchRule(c *cli.Context) error {
+func deleteSIPDispatchRule(ctx context.Context, c *cli.Command) error {
 	info, err := sipClient.DeleteSIPDispatchRule(context.Background(), &livekit.DeleteSIPDispatchRuleRequest{
 		SipDispatchRuleId: c.String("id"),
 	})
@@ -309,7 +309,7 @@ func printSIPDispatchRuleInfo(info *livekit.SIPDispatchRuleInfo) {
 	fmt.Printf("SIPDispatchRuleID: %v\n", info.SipDispatchRuleId)
 }
 
-func createSIPParticipant(c *cli.Context) error {
+func createSIPParticipant(ctx context.Context, c *cli.Command) error {
 	reqFile := c.String("request")
 	reqBytes, err := os.ReadFile(reqFile)
 	if err != nil {
@@ -328,7 +328,7 @@ func createSIPParticipant(c *cli.Context) error {
 
 	// CreateSIPParticipant will wait for LiveKit Participant to be created and that can take some time.
 	// Thus, we must set a higher deadline for it.
-	ctx, cancel := context.WithTimeout(c.Context, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	info, err := sipClient.CreateSIPParticipant(ctx, req)

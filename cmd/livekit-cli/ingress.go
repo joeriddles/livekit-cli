@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/livekit/protocol/livekit"
@@ -97,7 +97,7 @@ var (
 	ingressClient *lksdk.IngressClient
 )
 
-func createIngressClient(c *cli.Context) error {
+func createIngressClient(ctx context.Context, c *cli.Command) error {
 	pc, err := loadProjectDetails(c)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func createIngressClient(c *cli.Context) error {
 	return nil
 }
 
-func createIngress(c *cli.Context) error {
+func createIngress(ctx context.Context, c *cli.Command) error {
 	reqFile := c.String("request")
 	reqBytes, err := os.ReadFile(reqFile)
 	if err != nil {
@@ -133,7 +133,7 @@ func createIngress(c *cli.Context) error {
 	return nil
 }
 
-func updateIngress(c *cli.Context) error {
+func updateIngress(ctx context.Context, c *cli.Command) error {
 	reqFile := c.String("request")
 	reqBytes, err := os.ReadFile(reqFile)
 	if err != nil {
@@ -159,7 +159,7 @@ func updateIngress(c *cli.Context) error {
 	return nil
 }
 
-func listIngress(c *cli.Context) error {
+func listIngress(ctx context.Context, c *cli.Command) error {
 	res, err := ingressClient.ListIngress(context.Background(), &livekit.ListIngressRequest{
 		RoomName:  c.String("room"),
 		IngressId: c.String("id"),
@@ -200,7 +200,7 @@ func listIngress(c *cli.Context) error {
 	return nil
 }
 
-func deleteIngress(c *cli.Context) error {
+func deleteIngress(ctx context.Context, c *cli.Command) error {
 	info, err := ingressClient.DeleteIngress(context.Background(), &livekit.DeleteIngressRequest{
 		IngressId: c.String("id"),
 	})

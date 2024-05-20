@@ -24,7 +24,7 @@ import (
 
 	"github.com/livekit/protocol/utils/interceptors"
 	"github.com/twitchtv/twirp"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/livekit/livekit-cli/pkg/config"
 )
@@ -38,16 +38,16 @@ var (
 	urlFlag = &cli.StringFlag{
 		Name:    "url",
 		Usage:   "url to LiveKit instance",
-		EnvVars: []string{"LIVEKIT_URL"},
+		Sources: cli.EnvVars("LIVEKIT_URL"),
 		Value:   "http://localhost:7880",
 	}
 	apiKeyFlag = &cli.StringFlag{
 		Name:    "api-key",
-		EnvVars: []string{"LIVEKIT_API_KEY"},
+		Sources: cli.EnvVars("LIVEKIT_API_KEY"),
 	}
 	secretFlag = &cli.StringFlag{
 		Name:    "api-secret",
-		EnvVars: []string{"LIVEKIT_API_SECRET"},
+		Sources: cli.EnvVars("LIVEKIT_API_SECRET"),
 	}
 	identityFlag = &cli.StringFlag{
 		Name:     "identity",
@@ -123,12 +123,12 @@ var ignoreURL = func(p *loadParams) {
 // attempt to load connection config, it'll prioritize
 // 1. command line flags (or env var)
 // 2. default project config
-func loadProjectDetails(c *cli.Context, opts ...loadOption) (*config.ProjectConfig, error) {
+func loadProjectDetails(c *cli.Command, opts ...loadOption) (*config.ProjectConfig, error) {
 	p := loadParams{requireURL: true}
 	for _, opt := range opts {
 		opt(&p)
 	}
-	logDetails := func(c *cli.Context, pc *config.ProjectConfig) {
+	logDetails := func(c *cli.Command, pc *config.ProjectConfig) {
 		if c.Bool("verbose") {
 			fmt.Printf("URL: %s, api-key: %s, api-secret: %s\n",
 				pc.URL,

@@ -15,12 +15,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/livekit/protocol/auth"
 	"github.com/livekit/protocol/livekit"
@@ -106,7 +107,7 @@ var (
 	}
 )
 
-func createToken(c *cli.Context) error {
+func createToken(ctx context.Context, c *cli.Command) error {
 	p := c.String("identity") // required only for join
 	name := c.String("name")
 	room := c.String("room")

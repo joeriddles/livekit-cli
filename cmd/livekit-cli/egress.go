@@ -26,7 +26,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/browser"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
@@ -220,7 +220,6 @@ var (
 			HideHelpCommand:        false,
 			Hidden:                 false,
 			UseShortOptionHandling: false,
-			HelpName:               "",
 			CustomHelpTemplate:     "",
 		},
 	}
@@ -228,7 +227,7 @@ var (
 	egressClient *lksdk.EgressClient
 )
 
-func createEgressClient(c *cli.Context) error {
+func createEgressClient(ctx context.Context, c *cli.Command) error {
 	pc, err := loadProjectDetails(c)
 	if err != nil {
 		return err
@@ -238,7 +237,7 @@ func createEgressClient(c *cli.Context) error {
 	return nil
 }
 
-func startRoomCompositeEgress(c *cli.Context) error {
+func startRoomCompositeEgress(ctx context.Context, c *cli.Command) error {
 	req := &livekit.RoomCompositeEgressRequest{}
 	if err := unmarshalEgressRequest(c, req); err != nil {
 		return err
@@ -253,7 +252,7 @@ func startRoomCompositeEgress(c *cli.Context) error {
 	return nil
 }
 
-func startWebEgress(c *cli.Context) error {
+func startWebEgress(ctx context.Context, c *cli.Command) error {
 	req := &livekit.WebEgressRequest{}
 	if err := unmarshalEgressRequest(c, req); err != nil {
 		return err
@@ -268,7 +267,7 @@ func startWebEgress(c *cli.Context) error {
 	return nil
 }
 
-func startParticipantEgress(c *cli.Context) error {
+func startParticipantEgress(ctx context.Context, c *cli.Command) error {
 	req := &livekit.ParticipantEgressRequest{}
 	if err := unmarshalEgressRequest(c, req); err != nil {
 		return err
@@ -283,7 +282,7 @@ func startParticipantEgress(c *cli.Context) error {
 	return nil
 }
 
-func startTrackCompositeEgress(c *cli.Context) error {
+func startTrackCompositeEgress(ctx context.Context, c *cli.Command) error {
 	req := &livekit.TrackCompositeEgressRequest{}
 	if err := unmarshalEgressRequest(c, req); err != nil {
 		return err
@@ -298,7 +297,7 @@ func startTrackCompositeEgress(c *cli.Context) error {
 	return nil
 }
 
-func startTrackEgress(c *cli.Context) error {
+func startTrackEgress(ctx context.Context, c *cli.Command) error {
 	req := &livekit.TrackEgressRequest{}
 	if err := unmarshalEgressRequest(c, req); err != nil {
 		return err
@@ -313,7 +312,7 @@ func startTrackEgress(c *cli.Context) error {
 	return nil
 }
 
-func unmarshalEgressRequest(c *cli.Context, req proto.Message) error {
+func unmarshalEgressRequest(c *cli.Command, req proto.Message) error {
 	reqFile := c.String("request")
 	reqBytes, err := os.ReadFile(reqFile)
 	if err != nil {
@@ -329,7 +328,7 @@ func unmarshalEgressRequest(c *cli.Context, req proto.Message) error {
 	return nil
 }
 
-func listEgress(c *cli.Context) error {
+func listEgress(ctx context.Context, c *cli.Command) error {
 	var items []*livekit.EgressInfo
 	if c.IsSet("id") {
 		for _, id := range c.StringSlice("id") {
@@ -399,7 +398,7 @@ func listEgress(c *cli.Context) error {
 	return nil
 }
 
-func updateLayout(c *cli.Context) error {
+func updateLayout(ctx context.Context, c *cli.Command) error {
 	info, err := egressClient.UpdateLayout(context.Background(), &livekit.UpdateLayoutRequest{
 		EgressId: c.String("id"),
 		Layout:   c.String("layout"),
@@ -412,7 +411,7 @@ func updateLayout(c *cli.Context) error {
 	return nil
 }
 
-func updateStream(c *cli.Context) error {
+func updateStream(ctx context.Context, c *cli.Command) error {
 	info, err := egressClient.UpdateStream(context.Background(), &livekit.UpdateStreamRequest{
 		EgressId:         c.String("id"),
 		AddOutputUrls:    c.StringSlice("add-urls"),
@@ -426,7 +425,7 @@ func updateStream(c *cli.Context) error {
 	return nil
 }
 
-func stopEgress(c *cli.Context) error {
+func stopEgress(ctx context.Context, c *cli.Command) error {
 	ids := c.StringSlice("id")
 	var errors []error
 	for _, id := range ids {
@@ -446,7 +445,7 @@ func stopEgress(c *cli.Context) error {
 	return nil
 }
 
-func testEgressTemplate(c *cli.Context) error {
+func testEgressTemplate(ctx context.Context, c *cli.Command) error {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
@@ -473,7 +472,7 @@ func testEgressTemplate(c *cli.Context) error {
 	apiSecret := pc.APISecret
 
 	var testers []*loadtester.LoadTester
-	for i := 0; i < numPublishers; i++ {
+	for i := 0; i < int(numPublishers); i++ {
 		lt := loadtester.NewLoadTester(loadtester.TesterParams{
 			URL:            serverURL,
 			APIKey:         apiKey,

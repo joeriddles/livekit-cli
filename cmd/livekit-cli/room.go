@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/livekit/protocol/livekit"
@@ -224,7 +224,7 @@ var (
 	roomClient *lksdk.RoomServiceClient
 )
 
-func createRoomClient(c *cli.Context) error {
+func createRoomClient(ctx context.Context, c *cli.Command) error {
 	pc, err := loadProjectDetails(c)
 	if err != nil {
 		return err
@@ -234,7 +234,7 @@ func createRoomClient(c *cli.Context) error {
 	return nil
 }
 
-func createRoom(c *cli.Context) error {
+func createRoom(ctx context.Context, c *cli.Command) error {
 	req := &livekit.CreateRoomRequest{
 		Name: c.String("name"),
 	}
@@ -315,7 +315,7 @@ func createRoom(c *cli.Context) error {
 	return nil
 }
 
-func listRooms(c *cli.Context) error {
+func listRooms(ctx context.Context, c *cli.Command) error {
 	res, err := roomClient.ListRooms(context.Background(), &livekit.ListRoomsRequest{})
 	if err != nil {
 		return err
@@ -329,7 +329,7 @@ func listRooms(c *cli.Context) error {
 	return nil
 }
 
-func listRoom(c *cli.Context) error {
+func listRoom(ctx context.Context, c *cli.Command) error {
 	res, err := roomClient.ListRooms(context.Background(), &livekit.ListRoomsRequest{
 		Names: []string{c.String("room")},
 	})
@@ -345,7 +345,7 @@ func listRoom(c *cli.Context) error {
 	return nil
 }
 
-func deleteRoom(c *cli.Context) error {
+func deleteRoom(ctx context.Context, c *cli.Command) error {
 	roomId := c.String("room")
 	_, err := roomClient.DeleteRoom(context.Background(), &livekit.DeleteRoomRequest{
 		Room: roomId,
@@ -358,7 +358,7 @@ func deleteRoom(c *cli.Context) error {
 	return nil
 }
 
-func updateRoomMetadata(c *cli.Context) error {
+func updateRoomMetadata(ctx context.Context, c *cli.Command) error {
 	roomName := c.String("room")
 	res, err := roomClient.UpdateRoomMetadata(context.Background(), &livekit.UpdateRoomMetadataRequest{
 		Room:     roomName,
@@ -373,7 +373,7 @@ func updateRoomMetadata(c *cli.Context) error {
 	return nil
 }
 
-func listParticipants(c *cli.Context) error {
+func listParticipants(ctx context.Context, c *cli.Command) error {
 	roomName := c.String("room")
 	res, err := roomClient.ListParticipants(context.Background(), &livekit.ListParticipantsRequest{
 		Room: roomName,
@@ -388,7 +388,7 @@ func listParticipants(c *cli.Context) error {
 	return nil
 }
 
-func getParticipant(c *cli.Context) error {
+func getParticipant(ctx context.Context, c *cli.Command) error {
 	roomName, identity := participantInfoFromCli(c)
 	res, err := roomClient.GetParticipant(context.Background(), &livekit.RoomParticipantIdentity{
 		Room:     roomName,
@@ -403,7 +403,7 @@ func getParticipant(c *cli.Context) error {
 	return nil
 }
 
-func updateParticipant(c *cli.Context) error {
+func updateParticipant(ctx context.Context, c *cli.Command) error {
 	roomName, identity := participantInfoFromCli(c)
 	metadata := c.String("metadata")
 	permissions := c.String("permissions")
@@ -418,7 +418,7 @@ func updateParticipant(c *cli.Context) error {
 	}
 	if permissions != "" {
 		// load existing participant
-		participant, err := roomClient.GetParticipant(c.Context, &livekit.RoomParticipantIdentity{
+		participant, err := roomClient.GetParticipant(ctx, &livekit.RoomParticipantIdentity{
 			Room:     roomName,
 			Identity: identity,
 		})
@@ -436,7 +436,7 @@ func updateParticipant(c *cli.Context) error {
 
 	fmt.Println("updating participant...")
 	PrintJSON(req)
-	if _, err := roomClient.UpdateParticipant(c.Context, req); err != nil {
+	if _, err := roomClient.UpdateParticipant(ctx, req); err != nil {
 		return err
 	}
 	fmt.Println("participant updated.")
@@ -444,7 +444,7 @@ func updateParticipant(c *cli.Context) error {
 	return nil
 }
 
-func removeParticipant(c *cli.Context) error {
+func removeParticipant(ctx context.Context, c *cli.Command) error {
 	roomName, identity := participantInfoFromCli(c)
 	_, err := roomClient.RemoveParticipant(context.Background(), &livekit.RoomParticipantIdentity{
 		Room:     roomName,
@@ -459,7 +459,7 @@ func removeParticipant(c *cli.Context) error {
 	return nil
 }
 
-func muteTrack(c *cli.Context) error {
+func muteTrack(ctx context.Context, c *cli.Command) error {
 	roomName, identity := participantInfoFromCli(c)
 	trackSid := c.String("track")
 	_, err := roomClient.MutePublishedTrack(context.Background(), &livekit.MuteRoomTrackRequest{
@@ -480,7 +480,7 @@ func muteTrack(c *cli.Context) error {
 	return nil
 }
 
-func updateSubscriptions(c *cli.Context) error {
+func updateSubscriptions(ctx context.Context, c *cli.Command) error {
 	roomName, identity := participantInfoFromCli(c)
 	trackSids := c.StringSlice("track")
 	_, err := roomClient.UpdateSubscriptions(context.Background(), &livekit.UpdateSubscriptionsRequest{
@@ -501,7 +501,7 @@ func updateSubscriptions(c *cli.Context) error {
 	return nil
 }
 
-func sendData(c *cli.Context) error {
+func sendData(ctx context.Context, c *cli.Command) error {
 	roomName, _ := participantInfoFromCli(c)
 	pIDs := c.StringSlice("participantID")
 	data := c.String("data")
@@ -514,7 +514,7 @@ func sendData(c *cli.Context) error {
 	if topic != "" {
 		req.Topic = &topic
 	}
-	_, err := roomClient.SendData(c.Context, req)
+	_, err := roomClient.SendData(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -523,6 +523,6 @@ func sendData(c *cli.Context) error {
 	return nil
 }
 
-func participantInfoFromCli(c *cli.Context) (string, string) {
+func participantInfoFromCli(c *cli.Command) (string, string) {
 	return c.String("room"), c.String("identity")
 }

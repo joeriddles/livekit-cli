@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -24,7 +25,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/livekit/livekit-cli/pkg/config"
 )
@@ -36,7 +37,7 @@ var (
 			Usage:    "subcommand for project management",
 			Category: "Project Management",
 			Before:   loadProjectConfig,
-			Subcommands: []*cli.Command{
+			Commands: []*cli.Command{
 				{
 					Name:   "add",
 					Usage:  "add a new project",
@@ -84,7 +85,7 @@ var (
 	nameRegex      = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
 )
 
-func loadProjectConfig(c *cli.Context) error {
+func loadProjectConfig(ctx context.Context, c *cli.Command) error {
 	conf, err := config.LoadOrCreate()
 	if err != nil {
 		return err
@@ -102,7 +103,7 @@ func loadProjectConfig(c *cli.Context) error {
 	return nil
 }
 
-func addProject(c *cli.Context) error {
+func addProject(ctx context.Context, c *cli.Command) error {
 	p := config.ProjectConfig{}
 	var prompt promptui.Prompt
 
@@ -222,7 +223,7 @@ func addProject(c *cli.Context) error {
 	return nil
 }
 
-func listProjects(c *cli.Context) error {
+func listProjects(ctx context.Context, c *cli.Command) error {
 	if len(cliConfig.Projects) == 0 {
 		fmt.Println("No projects configured, use `livekit-cli project add` to add a new project.")
 		return nil
@@ -238,7 +239,7 @@ func listProjects(c *cli.Context) error {
 	return nil
 }
 
-func removeProject(c *cli.Context) error {
+func removeProject(ctx context.Context, c *cli.Command) error {
 	if c.NArg() == 0 {
 		_ = cli.ShowSubcommandHelp(c)
 		return errors.New("project name is required")
@@ -267,7 +268,7 @@ func removeProject(c *cli.Context) error {
 	return nil
 }
 
-func setDefaultProject(c *cli.Context) error {
+func setDefaultProject(ctx context.Context, c *cli.Command) error {
 	if c.NArg() == 0 {
 		_ = cli.ShowSubcommandHelp(c)
 		return errors.New("project name is required")

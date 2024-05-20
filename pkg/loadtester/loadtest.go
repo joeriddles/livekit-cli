@@ -157,8 +157,8 @@ func (t *LoadTest) Run(ctx context.Context) error {
 
 func (t *LoadTest) RunSuite(ctx context.Context) error {
 	cases := []*struct {
-		publishers  int
-		subscribers int
+		publishers  int64
+		subscribers int64
 		video       bool
 
 		tracks  int64
@@ -186,12 +186,12 @@ func (t *LoadTest) RunSuite(ctx context.Context) error {
 		caseParams := t.Params
 		videoString := "Yes"
 		if c.video {
-			caseParams.VideoPublishers = c.publishers
+			caseParams.VideoPublishers = int(c.publishers)
 		} else {
-			caseParams.AudioPublishers = c.publishers
+			caseParams.AudioPublishers = int(c.publishers)
 			videoString = "No"
 		}
-		caseParams.Subscribers = c.subscribers
+		caseParams.Subscribers = int(c.subscribers)
 		caseParams.Simulcast = true
 		if caseParams.Duration == 0 {
 			caseParams.Duration = 15 * time.Second
@@ -256,7 +256,7 @@ func (t *LoadTest) run(ctx context.Context, params Params) (map[string]*testerSt
 
 	// throttle pace of join events
 	limiter := rate.NewLimiter(rate.Limit(params.NumPerSecond), 1)
-	for i := 0; i < maxPublishers+params.Subscribers; i++ {
+	for i := 0; i < int(maxPublishers+params.Subscribers); i++ {
 		testerParams := params.TesterParams
 		testerParams.Sequence = i
 		testerParams.expectedTracks = expectedTracks
@@ -314,13 +314,13 @@ func (t *LoadTest) run(ctx context.Context, params Params) (map[string]*testerSt
 			return nil
 		})
 
-    if err := ctx.Err(); err != nil {
-      return nil, err
-    }
-    
-    if err := limiter.Wait(ctx); err != nil {
-      return nil, err
-    }
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		if err := limiter.Wait(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	var speakerSim *SpeakerSimulator
